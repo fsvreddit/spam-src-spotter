@@ -46,7 +46,7 @@ export async function onAppInstall (event: OnTriggerEvent<AppInstall>, context: 
 
     for (const post of linkPosts) {
         const currentDomain = domainFromUrlString(post.url);
-        const currentUseFrequency = useFrequency.find(x => x.domain = currentDomain);
+        const currentUseFrequency = useFrequency.find(x => x.domain === currentDomain);
         if (currentUseFrequency) {
             currentUseFrequency.useCount++;
         } else {
