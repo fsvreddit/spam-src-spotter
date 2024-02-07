@@ -8,11 +8,7 @@ interface SourceUseFrequency {
     useCount: number,
 }
 
-/**
- * Runs on app install, and seeds the source use store with data from the hottest 1000 link posts to
- * reduce workload on moderators. Also sets up scheduled jobs.
- */
-export async function onAppInstall (_: OnTriggerEvent<AppInstall>, context: TriggerContext) {
+export async function storeInitialSourceUseCounts (context: TriggerContext) {
     const subreddit = await context.reddit.getCurrentSubreddit();
 
     const subredditPosts = await context.reddit.getHotPosts({
@@ -35,4 +31,12 @@ export async function onAppInstall (_: OnTriggerEvent<AppInstall>, context: Trig
     }
 
     await context.redis.zAdd(SOURCE_USE_FREQUENCY, ...useFrequency.map(x => ({member: x.domain, score: x.useCount})));
+}
+
+/**
+ * Runs on app install, and seeds the source use store with data from the hottest 1000 link posts to
+ * reduce workload on moderators. Also sets up scheduled jobs.
+ */
+export async function onAppInstall (_: OnTriggerEvent<AppInstall>, context: TriggerContext) {
+    await storeInitialSourceUseCounts(context);
 }

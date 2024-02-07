@@ -10,16 +10,17 @@ export async function onModAction (event: OnTriggerEvent<ModAction>, context: Tr
     }
 
     if (event.action === "approvelink") {
+        console.log(`${event.targetPost.id}: Detected an ApproveLink mod action by ${event.moderator.name}.`);
         const wasPostFiltered = await isPostFiltered(event.targetPost.id, context);
         if (wasPostFiltered) {
-            console.log(`${event.targetPost.id}: Detected an ApproveLink mod action. Post was previously filtered.`);
+            console.log(`${event.targetPost.id}: Post was previously filtered.`);
             await removePostFilterRecord(event.targetPost.id, context);
         }
         await queuePostCheck(event.targetPost.id, context);
     }
 
-    if (event.action === "removelink" || event.action === "spamlink" && (event.moderator.name !== "AutoModerator" && event.moderator.name !== "reddit")) {
-        console.log(`${event.targetPost.id}: Detected a ${event.action} action. Checking if use count needs to be decremented.`);
+    if ((event.action === "removelink" || event.action === "spamlink") && (event.moderator.name !== "AutoModerator" && event.moderator.name !== "reddit")) {
+        console.log(`${event.targetPost.id}: Detected a ${event.action} action by ${event.moderator.name}. Checking if use count needs to be decremented.`);
         await decrementUseCountIfPostWasPreviouslyChecked(event.targetPost.id, context);
     }
 }
