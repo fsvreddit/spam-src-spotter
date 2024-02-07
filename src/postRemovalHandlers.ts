@@ -1,9 +1,11 @@
 import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
 import {PostDelete} from "@devvit/protos";
-import {currentSourceUseCount, incrementSourceUseCount} from "./redisHelper.js";
+import {currentSourceUseCount, incrementSourceUseCount, removePostFilterRecord} from "./redisHelper.js";
 
 export async function onPostDelete (event: OnTriggerEvent<PostDelete>, context: TriggerContext) {
+    console.log(`${event.postId}: User deleted their post.`);
     await decrementUseCountIfPostWasPreviouslyChecked(event.postId, context);
+    await removePostFilterRecord(event.postId, context);
 }
 
 export async function decrementUseCountIfPostWasPreviouslyChecked (postId: string, context: TriggerContext) {
