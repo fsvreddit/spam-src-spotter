@@ -2,6 +2,7 @@ import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
 import {AppInstall} from "@devvit/protos";
 import {domainFromUrlString} from "./utility.js";
 import {SOURCE_USE_FREQUENCY} from "./redisHelper.js";
+import {addDays} from "date-fns";
 
 interface SourceUseFrequency {
     domain: string,
@@ -31,6 +32,13 @@ export async function storeInitialSourceUseCounts (context: TriggerContext) {
     }
 
     await context.redis.zAdd(SOURCE_USE_FREQUENCY, ...useFrequency.map(x => ({member: x.domain, score: x.useCount})));
+
+    // Store a record of posts that were used to seed the data, in case they get reported.
+    for (const post of linkPosts) {
+        const redisKey = `PreviousPostCheck-${post.id}`;
+        // eslint-disable-next-line no-await-in-loop
+        await context.redis.set(redisKey, post.createdAt.getTime().toString(), {expiration: addDays(post.createdAt, 7)});
+    }
 }
 
 /**
