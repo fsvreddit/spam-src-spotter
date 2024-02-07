@@ -1,6 +1,6 @@
 import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
 import {AppInstall, AppUpgrade} from "@devvit/protos";
-import {domainFromUrlString, getSubredditName} from "./utility.js";
+import {domainFromUrlString} from "./utility.js";
 import {SOURCE_USE_FREQUENCY} from "./redisHelper.js";
 
 /**
@@ -33,10 +33,10 @@ interface SourceUseFrequency {
  * reduce workload on moderators. Also sets up scheduled jobs.
  */
 export async function onAppInstall (event: OnTriggerEvent<AppInstall>, context: TriggerContext) {
-    const subredditName = await getSubredditName(context);
+    const subreddit = await context.reddit.getCurrentSubreddit();
 
     const subredditPosts = await context.reddit.getHotPosts({
-        subredditName,
+        subredditName: subreddit.name,
         limit: 1000,
         pageSize: 100,
     }).all();
