@@ -32,7 +32,7 @@ interface SourceUseFrequency {
  * Runs on app install, and seeds the source use store with data from the hottest 1000 link posts to
  * reduce workload on moderators. Also sets up scheduled jobs.
  */
-export async function onAppInstall (event: OnTriggerEvent<AppInstall>, context: TriggerContext) {
+export async function onAppInstall (_: OnTriggerEvent<AppInstall>, context: TriggerContext) {
     const subreddit = await context.reddit.getCurrentSubreddit();
 
     const subredditPosts = await context.reddit.getHotPosts({
@@ -62,6 +62,6 @@ export async function onAppInstall (event: OnTriggerEvent<AppInstall>, context: 
 /**
  * Runs on app upgrade, and reschedules jobs.
  */
-export async function onAppUpgrade (event: OnTriggerEvent<AppUpgrade>, context: TriggerContext) {
+export async function onAppUpgrade (_: OnTriggerEvent<AppUpgrade>, context: TriggerContext) {
     await scheduleJobs(context);
 }

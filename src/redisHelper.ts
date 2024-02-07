@@ -40,6 +40,6 @@ export async function incrementSourceUseCount (post: Post, context: TriggerConte
  * Cleans up the filtered post store by removing entries over a week old. By that age it can be
  * reasonably assumed that those posts were removed, not filtered, on most subreddits.
  */
-export async function cleanupFilteredPostStore (event: ScheduledJobEvent, context: TriggerContext) {
+export async function cleanupFilteredPostStore (_: ScheduledJobEvent, context: TriggerContext) {
     await context.redis.zRemRangeByScore(FILTERED_POST_STORE, 0, addDays(new Date(), -7).getTime());
 }
