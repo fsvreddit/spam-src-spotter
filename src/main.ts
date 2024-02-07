@@ -1,6 +1,6 @@
 import {Devvit} from "@devvit/public-api";
 import {appSettings} from "./settings.js";
-import {onAppInstall, onAppUpgrade} from "./appInstallHandler.js";
+import {onAppInstall} from "./appInstallHandler.js";
 import {onPostCreate} from "./postCreateHandler.js";
 import {onModAction} from "./modActionHandler.js";
 import {onPostDelete} from "./postRemovalHandlers.js";
@@ -11,11 +11,6 @@ Devvit.addSettings(appSettings);
 Devvit.addTrigger({
     events: ["AppInstall"],
     onEvent: onAppInstall,
-});
-
-Devvit.addTrigger({
-    events: ["AppUpgrade"],
-    onEvent: onAppUpgrade,
 });
 
 Devvit.addTrigger({
