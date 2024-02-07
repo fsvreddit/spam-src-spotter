@@ -2,10 +2,10 @@ import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
 import {ModAction} from "@devvit/protos";
 import {isPostInFilteredPostStore} from "./redisHelper.js";
 import {checkAndActionPost} from "./postChecker.js";
-import {decrementUseCountIfPostWasFiltered} from "./postRemovalHandlers.js";
+import {decrementUseCountIfPostWasPreviouslyChecked} from "./postRemovalHandlers.js";
 
 export async function onModAction (event: OnTriggerEvent<ModAction>, context: TriggerContext) {
-    if (!event.action || !event.targetPost) {
+    if (!event.action || !event.targetPost || !event.moderator) {
         return;
     }
 
@@ -18,8 +18,8 @@ export async function onModAction (event: OnTriggerEvent<ModAction>, context: Tr
         }
     }
 
-    if (event.action === "removelink" || event.action === "spamlink") {
+    if (event.action === "removelink" || event.action === "spamlink" && (event.moderator.name !== "AutoModerator" && event.moderator.name !== "reddit")) {
         console.log(`Detected a ${event.action} action. Checking if use count needs to be decremented.`);
-        await decrementUseCountIfPostWasFiltered(event.targetPost.id, context);
+        await decrementUseCountIfPostWasPreviouslyChecked(event.targetPost.id, context);
     }
 }
