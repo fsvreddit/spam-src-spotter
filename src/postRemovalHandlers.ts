@@ -20,4 +20,6 @@ export async function decrementUseCountIfPostWasPreviouslyChecked (postId: strin
     if (score > 0) {
         await incrementSourceUseCount(post, context, -1);
     }
+
+    await context.redis.del(previousCheckKey);
 }
