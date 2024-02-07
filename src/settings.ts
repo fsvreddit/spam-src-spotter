@@ -28,7 +28,7 @@ export const appSettings: SettingsFormField[] = [
                 name: AppSetting.ReportTemplate,
                 label: "Template for report text",
                 helpText: "Placeholders supported: {{domain}}, {{usecount}}",
-                defaultValue: "Potential problem domain. {{domain}} has been seen {{usecount}} time.",
+                defaultValue: "Potential problem domain. {{domain}} has been seen {{usecount}} time(s).",
                 onValidate: ({value}) => {
                     if (value) {
                         const regex = /{{((?!domain|usecount)\w+)}}/;
