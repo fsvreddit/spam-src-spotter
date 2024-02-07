@@ -9,7 +9,7 @@ import {runCheckOnPost} from "./postChecker.js";
 Devvit.addSettings(appSettings);
 
 Devvit.addTrigger({
-    events: ["AppInstall"],
+    event: "AppInstall",
     onEvent: onAppInstall,
 });
 
@@ -24,7 +24,7 @@ Devvit.addTrigger({
 });
 
 Devvit.addTrigger({
-    events: ["PostDelete"],
+    event: "PostDelete",
     onEvent: onPostDelete,
 });
 

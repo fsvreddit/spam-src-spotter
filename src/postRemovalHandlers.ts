@@ -3,6 +3,10 @@ import {PostDelete} from "@devvit/protos";
 import {currentSourceUseCount, incrementSourceUseCount, removePostFilterRecord} from "./redisHelper.js";
 
 export async function onPostDelete (event: OnTriggerEvent<PostDelete>, context: TriggerContext) {
+    if (event.source !== 1) {
+        // If post was not deleted by the user, we don't want to decrement.
+        return;
+    }
     console.log(`${event.postId}: User deleted their post.`);
     await decrementUseCountIfPostWasPreviouslyChecked(event.postId, context);
     await removePostFilterRecord(event.postId, context);
@@ -15,6 +19,7 @@ export async function decrementUseCountIfPostWasPreviouslyChecked (postId: strin
         console.log(`${postId}: We have not previously checked this post, so no need to decrement.`);
         return;
     }
+    await context.redis.del(previousCheckKey);
 
     console.log(`${postId}: Post has been previously checked. Checking if score needs to be decremented.`);
 
@@ -25,6 +30,4 @@ export async function decrementUseCountIfPostWasPreviouslyChecked (postId: strin
         console.log(`${postId}: Current usage for this domain is ${score}. Decrementing`);
         await incrementSourceUseCount(post, context, -1);
     }
-
-    await context.redis.del(previousCheckKey);
 }
