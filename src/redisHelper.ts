@@ -1,22 +1,27 @@
-import {Post, ScheduledJobEvent, TriggerContext} from "@devvit/public-api";
+import {Post, TriggerContext} from "@devvit/public-api";
 import {domainFromUrlString} from "./utility.js";
 import {addDays} from "date-fns";
 
-export const FILTERED_POST_STORE = "FilteredPostStore";
 export const SOURCE_USE_FREQUENCY = "SourceUseFrequency";
 
-export async function isPostInFilteredPostStore (postId: string, context: TriggerContext): Promise<boolean> {
-    let score: number | undefined;
-    try {
-        score = await context.redis.zScore(FILTERED_POST_STORE, postId);
-    } catch {
-        score = undefined;
-    }
-    return score !== undefined;
+function getFilterRecordRedisKey (postId: string): string {
+    return `FilteredPost-${postId}`;
 }
 
-export async function addPostToFilteredPostStore (post: Post, context: TriggerContext) {
-    await context.redis.zAdd(FILTERED_POST_STORE, {member: post.id, score: post.createdAt.getTime()});
+export async function isPostFiltered (postId: string, context: TriggerContext): Promise<boolean> {
+    const redisKey = getFilterRecordRedisKey(postId);
+    const result = await context.redis.get(redisKey);
+    return result !== undefined && result !== "";
+}
+
+export async function addPostFilterRecord (postId: string, context: TriggerContext) {
+    const redisKey = getFilterRecordRedisKey(postId);
+    await context.redis.set(redisKey, new Date().getTime().toString(), {expiration: addDays(new Date(), 7)});
+}
+
+export async function removePostFilterRecord (postId: string, context: TriggerContext) {
+    const redisKey = getFilterRecordRedisKey(postId);
+    await context.redis.del(redisKey);
 }
 
 export async function currentSourceUseCount (post: Post, context: TriggerContext): Promise<number> {
@@ -34,12 +39,4 @@ export async function incrementSourceUseCount (post: Post, context: TriggerConte
     const domain = domainFromUrlString(post.url);
     const newScore = await context.redis.zIncrBy(SOURCE_USE_FREQUENCY, domain, incrementBy);
     return newScore;
-}
-
-/**
- * Cleans up the filtered post store by removing entries over a week old. By that age it can be
- * reasonably assumed that those posts were removed, not filtered, on most subreddits.
- */
-export async function cleanupFilteredPostStore (_: ScheduledJobEvent, context: TriggerContext) {
-    await context.redis.zRemRangeByScore(FILTERED_POST_STORE, 0, addDays(new Date(), -7).getTime());
 }

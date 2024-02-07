@@ -15,7 +15,7 @@ async function scheduleJobs (context: TriggerContext) {
     const hourToRun = Math.floor(Math.random() * 24);
     const cron = `${minuteToRun} ${hourToRun} * * *`;
 
-    console.log(`Rescheduling job. New cron: ${cron}`);
+    console.log(`Rescheduling job due to install or upgrade. New cron: ${cron}`);
 
     await context.scheduler.runJob({
         name: "cleanupFilteredPostStore",

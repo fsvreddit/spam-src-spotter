@@ -4,7 +4,7 @@ import {onAppInstall, onAppUpgrade} from "./appInstallHandler.js";
 import {onPostCreate} from "./postCreateHandler.js";
 import {onModAction} from "./modActionHandler.js";
 import {onPostDelete} from "./postRemovalHandlers.js";
-import {cleanupFilteredPostStore} from "./redisHelper.js";
+import {runCheckOnPost} from "./postChecker.js";
 
 Devvit.addSettings(appSettings);
 
@@ -34,8 +34,8 @@ Devvit.addTrigger({
 });
 
 Devvit.addSchedulerJob({
-    name: "cleanupFilteredPostStore",
-    onRun: cleanupFilteredPostStore,
+    name: "runCheckOnPost",
+    onRun: runCheckOnPost,
 });
 
 Devvit.configure({
