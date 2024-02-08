@@ -3,6 +3,10 @@ import {PostCreate} from "@devvit/protos";
 import {addPostFilterRecord} from "./redisHelper.js";
 import {queuePostCheck} from "./postChecker.js";
 
+/**
+ * Trigger handler for PostCreate events. If a post is filtered by Reddit/Automod, add to Redis to allow
+ * later surfacing. Otherwise if the post is visible, run checks.
+ */
 export async function onPostCreate (event: OnTriggerEvent<PostCreate>, context: TriggerContext) {
     if (!event.post) {
         return;

@@ -24,6 +24,9 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
     });
 }
 
+/**
+ * Scheduled Job execution handler. Gets the post and passes through to the checking function.
+ */
 export async function runCheckOnPost (event: ScheduledJobEvent, context: TriggerContext) {
     if (!event.data) {
         console.log("Scheduler job's data not assigned");
@@ -35,6 +38,9 @@ export async function runCheckOnPost (event: ScheduledJobEvent, context: Trigger
     await checkAndActionPost(post, context);
 }
 
+/**
+ * Checks a post and reports if the source hasn't been seen enough times.
+ */
 export async function checkAndActionPost (post: Post, context: TriggerContext) {
     const domain = domainFromUrlString(post.url);
     console.log(`${post.id}: Checking post with domain ${domain}`);

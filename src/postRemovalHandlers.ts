@@ -2,6 +2,10 @@ import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
 import {PostDelete} from "@devvit/protos";
 import {currentSourceUseCount, incrementSourceUseCount, removePostFilterRecord} from "./redisHelper.js";
 
+/**
+ * Handles PostDelete events. If the user deleted their own post, decreases the domain's use count
+ * (if previously was checked), and removes record of post being filtered if post was still in modqueue.
+ */
 export async function onPostDelete (event: OnTriggerEvent<PostDelete>, context: TriggerContext) {
     if (event.source !== 1) {
         // If post was not deleted by the user, we don't want to decrement.
@@ -12,6 +16,10 @@ export async function onPostDelete (event: OnTriggerEvent<PostDelete>, context: 
     await removePostFilterRecord(event.postId, context);
 }
 
+/**
+ * Checks to see if a post has previously been checked (i.e. had been visible on the subreddit) and
+ * decrements the use count for the domain if so.
+ */
 export async function decrementUseCountIfPostWasPreviouslyChecked (postId: string, context: TriggerContext) {
     const previousCheckKey = `PreviousPostCheck-${postId}`;
     const previouslyChecked = await context.redis.get(previousCheckKey);

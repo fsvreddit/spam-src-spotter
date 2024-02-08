@@ -9,6 +9,10 @@ interface SourceUseFrequency {
     useCount: number,
 }
 
+/**
+ * Grab the hottest 1000 posts on the subreddit, store their domain usage to reduce load
+ * on moderators on new installs.
+ */
 export async function storeInitialSourceUseCounts (context: TriggerContext) {
     const subreddit = await context.reddit.getCurrentSubreddit();
 
