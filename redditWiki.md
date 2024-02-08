@@ -1,18 +1,18 @@
 # Spam Source Spotter
 
-A moderation bot to report posts that are from domains that are not commonly used.
+A moderation bot to report posts that are from domains that are not commonly used. On many subreddits, most posts originate from a relatively predictable list of domains, and if a domain is posted that has never been seen before it can be an indication of spam activity.
 
 This app allows you to set two options.
 
 ### Act on sources that have been seen this many times or less
 
-E.g. if the threshold is zero, no posts will be reported.
+E.g. if the threshold is zero, no posts will be reported. Some subs might find it useful to run with this setting for a week or two after install to help build up a store of domains that the sub sees (although the app does attempt to build a list - see the Operation Notes section).
 
 If the threshold is 2, the first and second post that uses that domain will be reported, but no further ones.
 
 ### Template for report text
 
-Allows you to specify a custom reporting message.
+Allows you to specify a custom reporting message. Placeholders {{domain}} and {{usecount}} are supported.
 
 ## Operation Notes
 
@@ -23,4 +23,3 @@ After that point, the app will gather statistics on domains seen as posts are cr
 If a post has been removed by a moderator or deleted by its author, it is not taken into account for future reports.
 
 Checks are not currently run on posts while they are still in the moderation queue because it is not possible to report a queued post. This means that you may find you approve a post and then immediately get a report from the app.
-
