@@ -59,7 +59,7 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
 
     const currentUseCount = await incrementSourceUseCount(post, context, 1);
 
-    console.log(`${post.id}: We have seen this domain ${currentUseCount} times now. Threshold is ${sourceThreshold})`);
+    console.log(`${post.id}: We have seen ${domain} ${currentUseCount} time(s) now. Threshold is ${sourceThreshold}.`);
 
     if (currentUseCount > sourceThreshold) {
         return;
