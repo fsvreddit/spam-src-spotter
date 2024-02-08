@@ -1,6 +1,7 @@
 import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
 import {PostDelete} from "@devvit/protos";
 import {currentSourceUseCount, incrementSourceUseCount, removePostFilterRecord} from "./redisHelper.js";
+import {domainFromUrlString} from "./utility.js";
 
 /**
  * Handles PostDelete events. If the user deleted their own post, decreases the domain's use count
@@ -35,7 +36,7 @@ export async function decrementUseCountIfPostWasPreviouslyChecked (postId: strin
     const score = await currentSourceUseCount(post, context);
 
     if (score > 0) {
-        console.log(`${postId}: Current usage for this domain is ${score}. Decrementing`);
+        console.log(`${postId}: Current usage for ${domainFromUrlString(post.url)} is ${score}. Decrementing`);
         await incrementSourceUseCount(post, context, -1);
     }
 }
