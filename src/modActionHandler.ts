@@ -16,7 +16,11 @@ export async function onModAction (event: OnTriggerEvent<ModAction>, context: Tr
             console.log(`${event.targetPost.id}: Post was previously filtered.`);
             await removePostFilterRecord(event.targetPost.id, context);
         }
-        await queuePostCheck(event.targetPost.id, context);
+
+        // Check post if not an image/video post or a crosspost.
+        if (!event.targetPost.url.includes("redd.it") && !event.targetPost.url.includes("reddit.com")) {
+            await queuePostCheck(event.targetPost.id, context);
+        }
     }
 
     if ((event.action === "removelink" || event.action === "spamlink") && (event.moderator.name !== "AutoModerator" && event.moderator.name !== "reddit")) {

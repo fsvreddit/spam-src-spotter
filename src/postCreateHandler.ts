@@ -4,7 +4,14 @@ import {addPostFilterRecord} from "./redisHelper.js";
 import {queuePostCheck} from "./postChecker.js";
 
 export async function onPostCreate (event: OnTriggerEvent<PostCreate>, context: TriggerContext) {
-    if (!event.post || event.post.isSelf || event.post.isGallery || event.post.isVideo) {
+    if (!event.post) {
+        return;
+    }
+
+    // Ignore self posts, video posts, crossposts, image posts etc.
+    if (event.post.isSelf || event.post.isGallery || event.post.isVideo
+        || event.post.url.includes("redd.it" || event.post.url.includes("reddit.com"))) {
+        console.log(`${event.post.id}: Post isn't a link post.`);
         return;
     }
 
@@ -13,7 +20,7 @@ export async function onPostCreate (event: OnTriggerEvent<PostCreate>, context: 
     // Check if post has been removed by a mod or automod.
     // Human mod removals will always have post.removed === true.
     // Automod removals (not filterings) have removed === false but removedByCategory === moderator. Weird!
-    if (post.removed || post.removedByCategory === "moderator") {
+    if (post.spam || post.removed || post.removedByCategory === "moderator") {
         console.log(`${post.id}: Post has been removed by a moderator or Automod.`);
         return;
     }
