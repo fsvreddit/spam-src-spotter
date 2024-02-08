@@ -6,7 +6,9 @@ This app allows you to set two options.
 
 ### Act on sources that have been seen this many times or less
 
-E.g. if this is set to 5, a post only gets reported if it is from a domain that has been used four times or fewer. Set this value to 1 if you want to only report posts from domains that have literally never been seen. If this value is set to zero, reporting is effectively turned off. You may find it useful to run the app with a threshold of zero for a week or two in order to allow the app to gather data.
+E.g. if the threshold is zero, no posts will be reported.
+
+If the threshold is 2, the first and second post that uses that domain will be reported, but no further ones.
 
 ### Template for report text
 
