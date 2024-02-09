@@ -3,6 +3,7 @@ import {ModAction} from "@devvit/protos";
 import {isPostFiltered, removePostFilterRecord} from "./redisHelper.js";
 import {queuePostCheck} from "./postChecker.js";
 import {decrementUseCountIfPostWasPreviouslyChecked} from "./postRemovalHandlers.js";
+import {AppSetting} from "./settings.js";
 
 /**
  * Handles ModAction events and runs checks which will only run once per post.
@@ -20,8 +21,10 @@ export async function onModAction (event: OnTriggerEvent<ModAction>, context: Tr
             await removePostFilterRecord(event.targetPost.id, context);
         }
 
+        const checkAfterApprove = await context.settings.get<boolean>(AppSetting.CheckAfterApproval) ?? true;
+
         // Check post if not an image/video post or a crosspost.
-        if (!event.targetPost.url.includes("redd.it") && !event.targetPost.url.includes("reddit.com")) {
+        if (checkAfterApprove && !event.targetPost.url.includes("redd.it") && !event.targetPost.url.includes("reddit.com")) {
             await queuePostCheck(event.targetPost.id, context);
         }
     }

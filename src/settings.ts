@@ -2,6 +2,7 @@ import {SettingsFormField} from "@devvit/public-api";
 
 export enum AppSetting {
     SourceThreshold = "sourceThreshold",
+    CheckAfterApproval = "checkAfterApproval",
     ReportTemplate = "reportTemplate",
 }
 
@@ -16,6 +17,13 @@ export const appSettings: SettingsFormField[] = [
                 label: "Act on sources that have been seen this many times or less",
                 helpText: "If 0, no sources will be detected as potentially problematic. It can be useful to run with this value on busy subreddits to build up datasets.",
                 defaultValue: 2,
+            },
+            {
+                type: "boolean",
+                name: AppSetting.CheckAfterApproval,
+                label: "Check posts after approving out of the modqueue",
+                helpText: "If disabled, posts will only be checked if they were not modqueued.",
+                defaultValue: true,
             },
         ],
     },
