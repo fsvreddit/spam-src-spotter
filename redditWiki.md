@@ -18,7 +18,7 @@ Allows you to specify a custom reporting message. Placeholders {{domain}} and {{
 
 When the app is first installed, it analyses the first 1000 subreddit posts when sorted by "hot" and stores the number of times each has been used. This should reduce the number of spurious reports that would otherwise occur if every post was considered the "first time"!
 
-After that point, the app will gather statistics on domains seen as posts are created, maintaining this data store.
+After that point, the app will gather statistics on domains seen as posts are created or approved out of the modqueue, maintaining this data store.
 
 If a post has been removed by a moderator or deleted by its author, it is not taken into account for future reports.
 
