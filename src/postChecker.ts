@@ -42,6 +42,11 @@ export async function runCheckOnPost (event: ScheduledJobEvent, context: Trigger
  * Checks a post and reports if the source hasn't been seen enough times.
  */
 export async function checkAndActionPost (post: Post, context: TriggerContext) {
+    if (post.removed || post.removedByCategory) {
+        console.log(`${post.id}: Post has been deleted or removed after checks queued. RemovedByCategory: ${post.removedByCategory || "undefined"}`);
+        return;
+    }
+
     const domain = domainFromUrlString(post.url);
     console.log(`${post.id}: Checking post with domain ${domain}`);
 
