@@ -2,13 +2,19 @@
 
 A moderation bot to report posts that are from domains that are not commonly used. On many subreddits, most posts originate from a relatively predictable list of domains, and if a domain is posted that has never been seen before it can be an indication of spam activity.
 
-This app allows you to set two options.
+This app allows you to set three options.
 
 ### Act on sources that have been seen this many times or less
 
 E.g. if the threshold is zero, no posts will be reported. Some subs might find it useful to run with this setting for a week or two after install to help build up a store of domains that the sub sees (although the app does attempt to build a list - see the Operation Notes section).
 
 If the threshold is 2, the first and second post that uses that domain will be reported, but no further ones.
+
+### Check posts after approving out of the modqueue
+
+If enabled, posts will be checked when they are submitted (if they get past Automod or Reddit filters like Crowd Control) as well as if they get approved out of the modqueue.
+
+If disabled, posts will only be checked if they get past Automod/Reddit filters.
 
 ### Template for report text
 
