@@ -1,5 +1,5 @@
 import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
-import {PostDelete} from "@devvit/protos";
+import {PostDelete, EventSource} from "@devvit/protos";
 import {currentSourceUseCount, incrementSourceUseCount, removePostFilterRecord} from "./redisHelper.js";
 import {domainFromUrlString} from "./utility.js";
 
@@ -8,7 +8,7 @@ import {domainFromUrlString} from "./utility.js";
  * (if previously was checked), and removes record of post being filtered if post was still in modqueue.
  */
 export async function onPostDelete (event: OnTriggerEvent<PostDelete>, context: TriggerContext) {
-    if (event.source !== 1) {
+    if (event.source !== EventSource.USER) {
         // If post was not deleted by the user, we don't want to decrement.
         return;
     }
