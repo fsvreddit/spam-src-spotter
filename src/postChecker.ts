@@ -3,6 +3,7 @@ import {incrementSourceUseCount} from "./redisHelper.js";
 import {AppSetting} from "./settings.js";
 import {addSeconds, addWeeks} from "date-fns";
 import {domainFromUrlString} from "./utility.js";
+import pluralize from "pluralize";
 
 /**
  * Runs checks on a 15 second delay to allow for async operations to complete.
@@ -64,7 +65,7 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
 
     const currentUseCount = await incrementSourceUseCount(post, context, 1);
 
-    console.log(`${post.id}: We have seen ${domain} ${currentUseCount} time(s) now. Threshold is ${sourceThreshold}.`);
+    console.log(`${post.id}: We have seen ${domain} ${currentUseCount} ${pluralize("time", currentUseCount)} now. Threshold is ${sourceThreshold}.`);
 
     if (currentUseCount > sourceThreshold) {
         return;
@@ -74,6 +75,7 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
     if (reportTemplate) {
         reportTemplate = reportTemplate.replace("{{domain}}", domain);
         reportTemplate = reportTemplate.replace("{{usecount}}", currentUseCount.toString());
+        reportTemplate = reportTemplate.replace("{{times}}", pluralize("time", currentUseCount));
         await context.reddit.report(post, {reason: reportTemplate});
     }
 }

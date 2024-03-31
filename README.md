@@ -18,7 +18,7 @@ If disabled, posts will only be checked if they get past Automod/Reddit filters.
 
 ### Template for report text
 
-Allows you to specify a custom reporting message. Placeholders {{domain}} and {{usecount}} are supported.
+Allows you to specify a custom reporting message. Placeholders {{domain}}, {{usecount}} and {{times}} are supported. {{times}} is replaced with either "time" or "times" depending on whether the count is 1 or greater.
 
 ## Operation Notes
 
