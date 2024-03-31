@@ -3,6 +3,7 @@ import {AppInstall} from "@devvit/protos";
 import {domainFromUrlString} from "./utility.js";
 import {SOURCE_USE_FREQUENCY} from "./redisHelper.js";
 import {addDays} from "date-fns";
+import _ from "lodash";
 
 /**
  * Grab the hottest 1000 posts on the subreddit, store their domain usage to reduce load
@@ -18,17 +19,9 @@ export async function storeInitialSourceUseCounts (context: TriggerContext) {
     }).all();
 
     const linkPosts = subredditPosts.filter(post => !post.url.includes(post.permalink));
-    const useFrequency: ZMember[] = [];
 
-    for (const post of linkPosts) {
-        const currentDomain = domainFromUrlString(post.url);
-        const currentUseFrequency = useFrequency.find(x => x.member === currentDomain);
-        if (currentUseFrequency) {
-            currentUseFrequency.score++;
-        } else {
-            useFrequency.push({member: currentDomain, score: 1});
-        }
-    }
+    const countedDomains = _.countBy(linkPosts.map(post => domainFromUrlString(post.url)));
+    const useFrequency = Object.keys(countedDomains).map(x => <ZMember>{member: x, score: countedDomains[x]});
 
     await context.redis.zAdd(SOURCE_USE_FREQUENCY, ...useFrequency);
 
