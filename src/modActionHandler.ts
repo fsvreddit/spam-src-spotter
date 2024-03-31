@@ -1,4 +1,4 @@
-import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
+import {TriggerContext} from "@devvit/public-api";
 import {ModAction} from "@devvit/protos";
 import {isPostFiltered, removePostFilterRecord} from "./redisHelper.js";
 import {queuePostCheck} from "./postChecker.js";
@@ -8,7 +8,7 @@ import {AppSetting} from "./settings.js";
 /**
  * Handles ModAction events and runs checks which will only run once per post.
  */
-export async function onModAction (event: OnTriggerEvent<ModAction>, context: TriggerContext) {
+export async function onModAction (event: ModAction, context: TriggerContext) {
     if (!event.action || !event.targetPost || !event.moderator) {
         return;
     }

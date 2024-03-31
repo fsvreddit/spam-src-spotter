@@ -1,4 +1,4 @@
-import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
+import {TriggerContext} from "@devvit/public-api";
 import {PostDelete, EventSource} from "@devvit/protos";
 import {currentSourceUseCount, incrementSourceUseCount, removePostFilterRecord} from "./redisHelper.js";
 import {domainFromUrlString} from "./utility.js";
@@ -7,7 +7,7 @@ import {domainFromUrlString} from "./utility.js";
  * Handles PostDelete events. If the user deleted their own post, decreases the domain's use count
  * (if previously was checked), and removes record of post being filtered if post was still in modqueue.
  */
-export async function onPostDelete (event: OnTriggerEvent<PostDelete>, context: TriggerContext) {
+export async function onPostDelete (event: PostDelete, context: TriggerContext) {
     if (event.source !== EventSource.USER) {
         // If post was not deleted by the user, we don't want to decrement.
         return;

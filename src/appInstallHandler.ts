@@ -1,4 +1,4 @@
-import {OnTriggerEvent, TriggerContext} from "@devvit/public-api";
+import {TriggerContext} from "@devvit/public-api";
 import {AppInstall} from "@devvit/protos";
 import {domainFromUrlString} from "./utility.js";
 import {SOURCE_USE_FREQUENCY} from "./redisHelper.js";
@@ -49,6 +49,6 @@ export async function storeInitialSourceUseCounts (context: TriggerContext) {
  * Runs on app install, and seeds the source use store with data from the hottest 1000 link posts to
  * reduce workload on moderators. Also sets up scheduled jobs.
  */
-export async function onAppInstall (_: OnTriggerEvent<AppInstall>, context: TriggerContext) {
+export async function onAppInstall (_: AppInstall, context: TriggerContext) {
     await storeInitialSourceUseCounts(context);
 }
