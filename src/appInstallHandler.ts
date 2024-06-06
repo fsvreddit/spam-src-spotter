@@ -21,7 +21,7 @@ export async function storeInitialSourceUseCounts (context: TriggerContext) {
     const linkPosts = subredditPosts.filter(post => !post.url.includes(post.permalink));
 
     const countedDomains = _.countBy(linkPosts.map(post => domainFromUrlString(post.url)));
-    const useFrequency = Object.keys(countedDomains).map(x => <ZMember>{member: x, score: countedDomains[x]});
+    const useFrequency = Object.entries(countedDomains).map(([domain, count]) => <ZMember>{member: domain, score: count});
 
     await context.redis.zAdd(SOURCE_USE_FREQUENCY, ...useFrequency);
 
