@@ -1,13 +1,9 @@
-import {TriggerContext} from "@devvit/public-api";
+import {TriggerContext, ZMember} from "@devvit/public-api";
 import {AppInstall} from "@devvit/protos";
 import {domainFromUrlString} from "./utility.js";
 import {SOURCE_USE_FREQUENCY} from "./redisHelper.js";
 import {addDays} from "date-fns";
-
-interface SourceUseFrequency {
-    domain: string,
-    useCount: number,
-}
+import _ from "lodash";
 
 /**
  * Grab the hottest 1000 posts on the subreddit, store their domain usage to reduce load
@@ -23,24 +19,15 @@ export async function storeInitialSourceUseCounts (context: TriggerContext) {
     }).all();
 
     const linkPosts = subredditPosts.filter(post => !post.url.includes(post.permalink));
-    const useFrequency: SourceUseFrequency[] = [];
 
-    for (const post of linkPosts) {
-        const currentDomain = domainFromUrlString(post.url);
-        const currentUseFrequency = useFrequency.find(x => x.domain === currentDomain);
-        if (currentUseFrequency) {
-            currentUseFrequency.useCount++;
-        } else {
-            useFrequency.push({domain: currentDomain, useCount: 1});
-        }
-    }
+    const countedDomains = _.countBy(linkPosts.map(post => domainFromUrlString(post.url)));
+    const useFrequency = Object.entries(countedDomains).map(([domain, count]) => ({member: domain, score: count} as ZMember));
 
-    await context.redis.zAdd(SOURCE_USE_FREQUENCY, ...useFrequency.map(x => ({member: x.domain, score: x.useCount})));
+    await context.redis.zAdd(SOURCE_USE_FREQUENCY, ...useFrequency);
 
     // Store a record of posts that were used to seed the data, in case they get reported.
     for (const post of linkPosts) {
         const redisKey = `PreviousPostCheck-${post.id}`;
-        // eslint-disable-next-line no-await-in-loop
         await context.redis.set(redisKey, post.createdAt.getTime().toString(), {expiration: addDays(post.createdAt, 7)});
     }
 }

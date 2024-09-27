@@ -25,11 +25,14 @@ export async function removePostFilterRecord (postId: string, context: TriggerCo
 }
 
 export async function currentSourceUseCount (post: Post, context: TriggerContext): Promise<number> {
-    let score: number;
     try {
         const domain = domainFromUrlString(post.url);
-        score = await context.redis.zScore(SOURCE_USE_FREQUENCY, domain) ?? 0;
-        return score;
+        const score = await context.redis.zScore(SOURCE_USE_FREQUENCY, domain);
+        if (score) {
+            return score;
+        } else {
+            return 0;
+        }
     } catch {
         return 0;
     }

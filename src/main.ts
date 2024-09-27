@@ -4,7 +4,7 @@ import {onAppInstall} from "./appInstallHandler.js";
 import {onPostCreate} from "./postCreateHandler.js";
 import {onModAction} from "./modActionHandler.js";
 import {onPostDelete} from "./postRemovalHandlers.js";
-import {runCheckOnPost} from "./postChecker.js";
+import {distinctUsersForDomain, runCheckOnPost} from "./postChecker.js";
 
 Devvit.addSettings(appSettings);
 
@@ -33,9 +33,19 @@ Devvit.addSchedulerJob({
     onRun: runCheckOnPost,
 });
 
+Devvit.addMenuItem({
+    label: "Check Domain",
+    location: "subreddit",
+    onPress: async () => {
+        const postAuthors = await distinctUsersForDomain("bbc.co.uk");
+        console.log(postAuthors);
+    },
+});
+
 Devvit.configure({
     redditAPI: true,
     redis: true,
+    http: true,
 });
 
 export default Devvit;

@@ -2,6 +2,7 @@ import {TriggerContext} from "@devvit/public-api";
 import {PostCreate} from "@devvit/protos";
 import {addPostFilterRecord} from "./redisHelper.js";
 import {queuePostCheck} from "./postChecker.js";
+import {domainFromUrlString} from "./utility.js";
 
 /**
  * Trigger handler for PostCreate events. If a post is filtered by Reddit/Automod, add to Redis to allow
@@ -14,7 +15,7 @@ export async function onPostCreate (event: PostCreate, context: TriggerContext) 
 
     // Ignore self posts, video posts, crossposts, image posts etc.
     if (event.post.isSelf || event.post.isGallery || event.post.isVideo
-        || event.post.url.includes("redd.it" || event.post.url.includes("reddit.com"))) {
+        || domainFromUrlString(event.post.url).includes("redd.it") || domainFromUrlString(event.post.url).includes("reddit.com")) {
         console.log(`${event.post.id}: Post isn't a link post.`);
         return;
     }

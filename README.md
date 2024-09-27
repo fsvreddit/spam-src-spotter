@@ -2,9 +2,11 @@ A moderation bot to report posts that are from domains that are not commonly use
 
 ![Example report](https://raw.githubusercontent.com/fsvreddit/spam-src-spotter/main/doc_images/screenshot.png)
 
-This app allows you to set three options.
+This app allows you to set three options:
 
 ### Act on sources that have been seen this many times or less
+
+This is the number of times that the domain has been seen on your subreddit, not across Reddit as a whole
 
 E.g. if the threshold is zero, no posts will be reported. Some subs might find it useful to run with this setting for a week or two after install to help build up a store of domains that the sub sees (although the app does attempt to build a list on install - see the Operation Notes section).
 
@@ -16,9 +18,15 @@ If enabled, posts will be checked both when they are submitted (if they get past
 
 If disabled, posts will only be checked if they get past Automod/Reddit filters.
 
+### Only count posts if fewer than this many users have submitted
+
+This option checks the most recent 100 posts from this domain from all across Reddit. If a domain has been submitted by a large number of users, it's unlikely to be spammy. 
+
+If this value is zero, posts outside your subreddit will not be counted, but otherwise if the number of distinct users from the most recent 100 is above this configured value, no report will be made.
+
 ### Template for report text
 
-Allows you to specify a custom reporting message. Placeholders {{domain}} and {{usecount}} are supported.
+Allows you to specify a custom reporting message. Placeholders {{domain}}, {{usecount}} and {{times}} are supported. {{times}} is replaced with either "time" or "times" depending on whether the count is 1 or greater.
 
 ## Operation Notes
 
@@ -36,4 +44,10 @@ Spam Source Spotter is open source. You can find the source code on Github [here
 
 ## Change History
 
-v1.0.3: Fixed an error that prevented scores from being decremented is a user deletes their own post.
+### v1.1
+
+New option added to check the number of users across Reddit who have submitted from this domain. This will greatly reduce the number of false positive reports from the app.
+
+### v1.0.3
+
+Fixed an error that prevented scores from being decremented is a user deletes their own post.

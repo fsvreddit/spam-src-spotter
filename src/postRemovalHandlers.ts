@@ -8,7 +8,7 @@ import {domainFromUrlString} from "./utility.js";
  * (if previously was checked), and removes record of post being filtered if post was still in modqueue.
  */
 export async function onPostDelete (event: PostDelete, context: TriggerContext) {
-    if (event.source !== 1) {
+    if (event.source as number !== 1) {
         // If post was not deleted by the user, we don't want to decrement.
         return;
     }

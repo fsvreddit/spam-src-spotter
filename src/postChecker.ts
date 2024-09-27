@@ -3,6 +3,8 @@ import {incrementSourceUseCount} from "./redisHelper.js";
 import {AppSetting} from "./settings.js";
 import {addSeconds, addWeeks} from "date-fns";
 import {domainFromUrlString} from "./utility.js";
+import pluralize from "pluralize";
+import _ from "lodash";
 
 /**
  * Runs checks on a 15 second delay to allow for async operations to complete.
@@ -43,7 +45,7 @@ export async function runCheckOnPost (event: ScheduledJobEvent, context: Trigger
  */
 export async function checkAndActionPost (post: Post, context: TriggerContext) {
     if (post.removed || post.removedByCategory) {
-        console.log(`${post.id}: Post has been deleted or removed after checks queued. RemovedByCategory: ${post.removedByCategory || "undefined"}`);
+        console.log(`${post.id}: Post has been deleted or removed after checks queued. RemovedByCategory: ${post.removedByCategory ?? "undefined"}`);
         return;
     }
 
@@ -55,7 +57,8 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
     // Add a Redis key to prevent re-processing. Persist records for one week only to manage growth.
     await context.redis.set(previousCheckKey, new Date().getTime().toString(), {expiration: addWeeks(new Date(), 1)});
 
-    const sourceThreshold = await context.settings.get<number>(AppSetting.SourceThreshold);
+    const settings = await context.settings.getAll();
+    const sourceThreshold = settings[AppSetting.SourceThreshold] as number | undefined;
 
     if (!sourceThreshold) {
         console.log("Config: Threshold has not been set!");
@@ -64,16 +67,53 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
 
     const currentUseCount = await incrementSourceUseCount(post, context, 1);
 
-    console.log(`${post.id}: We have seen ${domain} ${currentUseCount} time(s) now. Threshold is ${sourceThreshold}.`);
+    console.log(`${post.id}: We have seen ${domain} ${currentUseCount} ${pluralize("time", currentUseCount)} now. Threshold is ${sourceThreshold}.`);
 
     if (currentUseCount > sourceThreshold) {
         return;
     }
 
-    let reportTemplate = await context.settings.get<string>(AppSetting.ReportTemplate);
+    const userLimit = settings[AppSetting.UserLimit] as number | undefined;
+    if (userLimit) {
+        const distinctAuthors = await distinctUsersForDomain(domain);
+        console.log(`${post.id}: Domain has been submitted from ${distinctAuthors} recently.`);
+        if (distinctAuthors > userLimit) {
+            console.log(`${post.id}: Too many users have submitted to report.`);
+            return;
+        }
+    }
+
+    let reportTemplate = settings[AppSetting.ReportTemplate] as string | undefined;
     if (reportTemplate) {
         reportTemplate = reportTemplate.replace("{{domain}}", domain);
         reportTemplate = reportTemplate.replace("{{usecount}}", currentUseCount.toString());
+        reportTemplate = reportTemplate.replace("{{times}}", pluralize("time", currentUseCount));
         await context.reddit.report(post, {reason: reportTemplate});
+        console.log(`${post.id}: Reported post.`);
     }
+}
+
+/**
+ * A very simple interface that represents the bare minimum of data I need to satisfy the next function.
+ */
+interface PostAuthors {
+    data: {
+        children: [
+            {
+                data: {
+                    author: string
+                }
+            }
+        ]
+    }
+}
+
+export async function distinctUsersForDomain (domain: string): Promise<number> {
+    const result = await fetch(`https://reddit.com/domain/${domain}.json?limit=100`, {method: "GET"});
+    const resultBody = await result.json() as string;
+    const postAuthors = JSON.parse(resultBody) as PostAuthors;
+    const distinctAuthors = _.uniq(postAuthors.data.children.map(post => post.data.author));
+    console.log(`Domain ${domain} has been submitted by ${distinctAuthors.length} distinct ${pluralize("user", distinctAuthors.length)}`);
+
+    return distinctAuthors.length;
 }

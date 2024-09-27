@@ -4,6 +4,7 @@ export enum AppSetting {
     SourceThreshold = "sourceThreshold",
     CheckAfterApproval = "checkAfterApproval",
     ReportTemplate = "reportTemplate",
+    UserLimit = "userLimit",
 }
 
 export const appSettings: SettingsFormField[] = [
@@ -25,6 +26,13 @@ export const appSettings: SettingsFormField[] = [
                 helpText: "If disabled, posts will only be checked if they were not modqueued.",
                 defaultValue: true,
             },
+            {
+                type: "number",
+                name: AppSetting.UserLimit,
+                label: "Only count posts if fewer than this many users have submitted this domain out of the most recent 100 posts for the domain",
+                helpText: "If a domain has been submitted by lots of different users, it's less likely to be suspect. Set to zero to disable this check.",
+                defaultValue: 10,
+            },
         ],
     },
     {
@@ -35,12 +43,12 @@ export const appSettings: SettingsFormField[] = [
                 type: "string",
                 name: AppSetting.ReportTemplate,
                 label: "Template for report text",
-                helpText: "Placeholders supported: {{domain}}, {{usecount}}",
-                defaultValue: "Potential problem domain. {{domain}} has been seen {{usecount}} time(s).",
+                helpText: "Placeholders supported: {{domain}}, {{usecount}}, {{times}}",
+                defaultValue: "Potential problem domain. {{domain}} has been seen {{usecount}} {{times}}.",
                 onValidate: ({value}) => {
                     if (value) {
-                        const regex = /{{((?!domain|usecount)\w+)}}/;
-                        const matches = value.match(regex);
+                        const regex = /{{((?!domain|usecount|times)\w+)}}/;
+                        const matches = regex.exec(value);
                         if (matches && matches.length === 2) {
                             return `Invalid placeholder {{${matches[1]}}}`;
                         }
