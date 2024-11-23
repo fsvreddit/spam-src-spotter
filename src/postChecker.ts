@@ -87,7 +87,6 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
     if (reportTemplate) {
         reportTemplate = reportTemplate.replace("{{domain}}", domain);
         reportTemplate = reportTemplate.replace("{{usecount}}", currentUseCount.toString());
-        reportTemplate = reportTemplate.replace("{{times}}", pluralize("time", currentUseCount));
         await context.reddit.report(post, { reason: reportTemplate });
         console.log(`${post.id}: Reported post.`);
     }

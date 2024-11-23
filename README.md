@@ -26,7 +26,7 @@ If this value is zero, posts outside your subreddit will not be counted, but oth
 
 ### Template for report text
 
-Allows you to specify a custom reporting message. Placeholders {{domain}}, {{usecount}} and {{times}} are supported. {{times}} is replaced with either "time" or "times" depending on whether the count is 1 or greater.
+Allows you to specify a custom reporting message. Placeholders {{domain}} and {{usecount}} are supported.
 
 ## Operation Notes
 

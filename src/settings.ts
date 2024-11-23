@@ -43,11 +43,11 @@ export const appSettings: SettingsFormField[] = [
                 type: "string",
                 name: AppSetting.ReportTemplate,
                 label: "Template for report text",
-                helpText: "Placeholders supported: {{domain}}, {{usecount}}, {{times}}",
-                defaultValue: "Potential problem domain. {{domain}} has been seen {{usecount}} {{times}}.",
+                helpText: "Placeholders supported: {{domain}}, {{usecount}}",
+                defaultValue: "Potential problem domain. {{domain}} has been seen {{usecount}} time(s).",
                 onValidate: ({ value }) => {
                     if (value) {
-                        const regex = /{{((?!domain|usecount|times)\w+)}}/;
+                        const regex = /{{((?!domain|usecount)\w+)}}/;
                         const matches = regex.exec(value);
                         if (matches && matches.length === 2) {
                             return `Invalid placeholder {{${matches[1]}}}`;
