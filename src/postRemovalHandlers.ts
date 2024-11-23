@@ -1,7 +1,7 @@
-import {TriggerContext} from "@devvit/public-api";
-import {PostDelete} from "@devvit/protos";
-import {currentSourceUseCount, incrementSourceUseCount, removePostFilterRecord} from "./redisHelper.js";
-import {domainFromUrlString} from "./utility.js";
+import { TriggerContext } from "@devvit/public-api";
+import { PostDelete } from "@devvit/protos";
+import { currentSourceUseCount, incrementSourceUseCount, removePostFilterRecord } from "./redisHelper.js";
+import { domainFromUrlString } from "./utility.js";
 
 /**
  * Handles PostDelete events. If the user deleted their own post, decreases the domain's use count

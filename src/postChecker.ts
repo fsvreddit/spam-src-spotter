@@ -1,10 +1,10 @@
-import {Post, ScheduledJobEvent, TriggerContext} from "@devvit/public-api";
-import {incrementSourceUseCount} from "./redisHelper.js";
-import {AppSetting} from "./settings.js";
-import {addSeconds, addWeeks} from "date-fns";
-import {domainFromUrlString} from "./utility.js";
+import { JSONObject, Post, ScheduledJobEvent, TriggerContext } from "@devvit/public-api";
+import { incrementSourceUseCount } from "./redisHelper.js";
+import { AppSetting } from "./settings.js";
+import { addSeconds, addWeeks } from "date-fns";
+import { domainFromUrlString } from "./utility.js";
 import pluralize from "pluralize";
-import _ from "lodash";
+import { uniq } from "lodash";
 
 /**
  * Runs checks on a 15 second delay to allow for async operations to complete.
@@ -21,7 +21,7 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
     console.log(`${postId}: Queueing check on post for 15 seconds.`);
     await context.scheduler.runJob({
         name: "runCheckOnPost",
-        data: {postId},
+        data: { postId },
         runAt: addSeconds(new Date(), 15),
     });
 }
@@ -29,7 +29,7 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
 /**
  * Scheduled Job execution handler. Gets the post and passes through to the checking function.
  */
-export async function runCheckOnPost (event: ScheduledJobEvent, context: TriggerContext) {
+export async function runCheckOnPost (event: ScheduledJobEvent<JSONObject | undefined>, context: TriggerContext) {
     if (!event.data) {
         console.log("Scheduler job's data not assigned");
         return;
@@ -55,7 +55,7 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
     const previousCheckKey = `PreviousPostCheck-${post.id}`;
 
     // Add a Redis key to prevent re-processing. Persist records for one week only to manage growth.
-    await context.redis.set(previousCheckKey, new Date().getTime().toString(), {expiration: addWeeks(new Date(), 1)});
+    await context.redis.set(previousCheckKey, new Date().getTime().toString(), { expiration: addWeeks(new Date(), 1) });
 
     const settings = await context.settings.getAll();
     const sourceThreshold = settings[AppSetting.SourceThreshold] as number | undefined;
@@ -88,7 +88,7 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
         reportTemplate = reportTemplate.replace("{{domain}}", domain);
         reportTemplate = reportTemplate.replace("{{usecount}}", currentUseCount.toString());
         reportTemplate = reportTemplate.replace("{{times}}", pluralize("time", currentUseCount));
-        await context.reddit.report(post, {reason: reportTemplate});
+        await context.reddit.report(post, { reason: reportTemplate });
         console.log(`${post.id}: Reported post.`);
     }
 }
@@ -101,18 +101,18 @@ interface PostAuthors {
         children: [
             {
                 data: {
-                    author: string
-                }
-            }
-        ]
-    }
+                    author: string;
+                };
+            },
+        ];
+    };
 }
 
 export async function distinctUsersForDomain (domain: string): Promise<number> {
-    const result = await fetch(`https://reddit.com/domain/${domain}.json?limit=100`, {method: "GET"});
+    const result = await fetch(`https://reddit.com/domain/${domain}.json?limit=100`, { method: "GET" });
     const resultBody = await result.json() as string;
     const postAuthors = JSON.parse(resultBody) as PostAuthors;
-    const distinctAuthors = _.uniq(postAuthors.data.children.map(post => post.data.author));
+    const distinctAuthors = uniq(postAuthors.data.children.map(post => post.data.author));
     console.log(`Domain ${domain} has been submitted by ${distinctAuthors.length} distinct ${pluralize("user", distinctAuthors.length)}`);
 
     return distinctAuthors.length;

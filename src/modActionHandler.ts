@@ -1,9 +1,9 @@
-import {TriggerContext} from "@devvit/public-api";
-import {ModAction} from "@devvit/protos";
-import {isPostFiltered, removePostFilterRecord} from "./redisHelper.js";
-import {queuePostCheck} from "./postChecker.js";
-import {decrementUseCountIfPostWasPreviouslyChecked} from "./postRemovalHandlers.js";
-import {AppSetting} from "./settings.js";
+import { TriggerContext } from "@devvit/public-api";
+import { ModAction } from "@devvit/protos";
+import { isPostFiltered, removePostFilterRecord } from "./redisHelper.js";
+import { queuePostCheck } from "./postChecker.js";
+import { decrementUseCountIfPostWasPreviouslyChecked } from "./postRemovalHandlers.js";
+import { AppSetting } from "./settings.js";
 
 /**
  * Handles ModAction events and runs checks which will only run once per post.

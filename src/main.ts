@@ -1,10 +1,10 @@
-import {Devvit} from "@devvit/public-api";
-import {appSettings} from "./settings.js";
-import {onAppInstall} from "./appInstallHandler.js";
-import {onPostCreate} from "./postCreateHandler.js";
-import {onModAction} from "./modActionHandler.js";
-import {onPostDelete} from "./postRemovalHandlers.js";
-import {distinctUsersForDomain, runCheckOnPost} from "./postChecker.js";
+import { Devvit } from "@devvit/public-api";
+import { appSettings } from "./settings.js";
+import { onAppInstall } from "./appInstallHandler.js";
+import { onPostCreate } from "./postCreateHandler.js";
+import { onModAction } from "./modActionHandler.js";
+import { onPostDelete } from "./postRemovalHandlers.js";
+import { distinctUsersForDomain, runCheckOnPost } from "./postChecker.js";
 
 Devvit.addSettings(appSettings);
 

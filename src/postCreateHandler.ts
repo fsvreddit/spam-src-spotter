@@ -1,8 +1,8 @@
-import {TriggerContext} from "@devvit/public-api";
-import {PostCreate} from "@devvit/protos";
-import {addPostFilterRecord} from "./redisHelper.js";
-import {queuePostCheck} from "./postChecker.js";
-import {domainFromUrlString} from "./utility.js";
+import { TriggerContext } from "@devvit/public-api";
+import { PostCreate } from "@devvit/protos";
+import { addPostFilterRecord } from "./redisHelper.js";
+import { queuePostCheck } from "./postChecker.js";
+import { domainFromUrlString } from "./utility.js";
 
 /**
  * Trigger handler for PostCreate events. If a post is filtered by Reddit/Automod, add to Redis to allow

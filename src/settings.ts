@@ -1,4 +1,4 @@
-import {SettingsFormField} from "@devvit/public-api";
+import { SettingsFormField } from "@devvit/public-api";
 
 export enum AppSetting {
     SourceThreshold = "sourceThreshold",
@@ -45,7 +45,7 @@ export const appSettings: SettingsFormField[] = [
                 label: "Template for report text",
                 helpText: "Placeholders supported: {{domain}}, {{usecount}}, {{times}}",
                 defaultValue: "Potential problem domain. {{domain}} has been seen {{usecount}} {{times}}.",
-                onValidate: ({value}) => {
+                onValidate: ({ value }) => {
                     if (value) {
                         const regex = /{{((?!domain|usecount|times)\w+)}}/;
                         const matches = regex.exec(value);
