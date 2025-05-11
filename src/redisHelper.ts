@@ -1,6 +1,6 @@
-import {Post, TriggerContext} from "@devvit/public-api";
-import {domainFromUrlString} from "./utility.js";
-import {addDays} from "date-fns";
+import { Post, TriggerContext } from "@devvit/public-api";
+import { domainFromUrlString } from "./utility.js";
+import { addDays } from "date-fns";
 
 export const SOURCE_USE_FREQUENCY = "SourceUseFrequency";
 
@@ -16,7 +16,7 @@ export async function isPostFiltered (postId: string, context: TriggerContext): 
 
 export async function addPostFilterRecord (postId: string, context: TriggerContext) {
     const redisKey = getFilterRecordRedisKey(postId);
-    await context.redis.set(redisKey, new Date().getTime().toString(), {expiration: addDays(new Date(), 7)});
+    await context.redis.set(redisKey, new Date().getTime().toString(), { expiration: addDays(new Date(), 7) });
 }
 
 export async function removePostFilterRecord (postId: string, context: TriggerContext) {

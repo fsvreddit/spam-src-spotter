@@ -1,4 +1,4 @@
-import {domainFromUrlString} from "./utility.js";
+import { domainFromUrlString } from "./utility.js";
 
 test("URL with www", () => {
     const url = "https://www.reddit.com/r/mod/about/modqueue";

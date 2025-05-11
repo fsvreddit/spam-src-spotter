@@ -1,10 +1,11 @@
-import {Devvit} from "@devvit/public-api";
-import {appSettings} from "./settings.js";
-import {onAppInstall} from "./appInstallHandler.js";
-import {onPostCreate} from "./postCreateHandler.js";
-import {onModAction} from "./modActionHandler.js";
-import {onPostDelete} from "./postRemovalHandlers.js";
-import {runCheckOnPost} from "./postChecker.js";
+import { Devvit } from "@devvit/public-api";
+import { appSettings } from "./settings.js";
+import { onAppInstall, storeInitialSourceUseCounts } from "./appInstallHandler.js";
+import { onPostCreate } from "./postCreateHandler.js";
+import { onModAction } from "./modActionHandler.js";
+import { onPostDelete } from "./postRemovalHandlers.js";
+import { runCheckOnPost } from "./postChecker.js";
+import { RUN_CHECK_ON_POSTS_JOB, STORE_INITIAL_SOURCE_USE_COUNTS } from "./constants.js";
 
 Devvit.addSettings(appSettings);
 
@@ -29,8 +30,13 @@ Devvit.addTrigger({
 });
 
 Devvit.addSchedulerJob({
-    name: "runCheckOnPost",
+    name: RUN_CHECK_ON_POSTS_JOB,
     onRun: runCheckOnPost,
+});
+
+Devvit.addSchedulerJob({
+    name: STORE_INITIAL_SOURCE_USE_COUNTS,
+    onRun: storeInitialSourceUseCounts,
 });
 
 Devvit.configure({

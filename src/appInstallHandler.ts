@@ -1,19 +1,20 @@
-import {TriggerContext} from "@devvit/public-api";
-import {AppInstall} from "@devvit/protos";
-import {domainFromUrlString} from "./utility.js";
-import {SOURCE_USE_FREQUENCY} from "./redisHelper.js";
-import {addDays} from "date-fns";
+import { JobContext, TriggerContext } from "@devvit/public-api";
+import { AppInstall } from "@devvit/protos";
+import { domainFromUrlString } from "./utility.js";
+import { SOURCE_USE_FREQUENCY } from "./redisHelper.js";
+import { addDays } from "date-fns";
+import { STORE_INITIAL_SOURCE_USE_COUNTS } from "./constants.js";
 
 interface SourceUseFrequency {
-    domain: string,
-    useCount: number,
+    domain: string;
+    useCount: number;
 }
 
 /**
  * Grab the hottest 1000 posts on the subreddit, store their domain usage to reduce load
  * on moderators on new installs.
  */
-export async function storeInitialSourceUseCounts (context: TriggerContext) {
+export async function storeInitialSourceUseCounts (_: unknown, context: JobContext) {
     const subreddit = await context.reddit.getCurrentSubreddit();
 
     const subredditPosts = await context.reddit.getHotPosts({
@@ -31,17 +32,17 @@ export async function storeInitialSourceUseCounts (context: TriggerContext) {
         if (currentUseFrequency) {
             currentUseFrequency.useCount++;
         } else {
-            useFrequency.push({domain: currentDomain, useCount: 1});
+            useFrequency.push({ domain: currentDomain, useCount: 1 });
         }
     }
 
-    await context.redis.zAdd(SOURCE_USE_FREQUENCY, ...useFrequency.map(x => ({member: x.domain, score: x.useCount})));
+    await context.redis.zAdd(SOURCE_USE_FREQUENCY, ...useFrequency.map(x => ({ member: x.domain, score: x.useCount })));
 
     // Store a record of posts that were used to seed the data, in case they get reported.
     for (const post of linkPosts) {
         const redisKey = `PreviousPostCheck-${post.id}`;
-        // eslint-disable-next-line no-await-in-loop
-        await context.redis.set(redisKey, post.createdAt.getTime().toString(), {expiration: addDays(post.createdAt, 7)});
+
+        await context.redis.set(redisKey, post.createdAt.getTime().toString(), { expiration: addDays(post.createdAt, 7) });
     }
 }
 
@@ -50,5 +51,8 @@ export async function storeInitialSourceUseCounts (context: TriggerContext) {
  * reduce workload on moderators. Also sets up scheduled jobs.
  */
 export async function onAppInstall (_: AppInstall, context: TriggerContext) {
-    await storeInitialSourceUseCounts(context);
+    await context.scheduler.runJob({
+        name: STORE_INITIAL_SOURCE_USE_COUNTS,
+        runAt: new Date(),
+    });
 }
