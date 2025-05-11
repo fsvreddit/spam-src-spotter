@@ -1,8 +1,9 @@
-import { TriggerContext } from "@devvit/public-api";
+import { JobContext, TriggerContext } from "@devvit/public-api";
 import { AppInstall } from "@devvit/protos";
 import { domainFromUrlString } from "./utility.js";
 import { SOURCE_USE_FREQUENCY } from "./redisHelper.js";
 import { addDays } from "date-fns";
+import { STORE_INITIAL_SOURCE_USE_COUNTS } from "./constants.js";
 
 interface SourceUseFrequency {
     domain: string;
@@ -13,7 +14,7 @@ interface SourceUseFrequency {
  * Grab the hottest 1000 posts on the subreddit, store their domain usage to reduce load
  * on moderators on new installs.
  */
-export async function storeInitialSourceUseCounts (context: TriggerContext) {
+export async function storeInitialSourceUseCounts (_: unknown, context: JobContext) {
     const subreddit = await context.reddit.getCurrentSubreddit();
 
     const subredditPosts = await context.reddit.getHotPosts({
@@ -50,5 +51,8 @@ export async function storeInitialSourceUseCounts (context: TriggerContext) {
  * reduce workload on moderators. Also sets up scheduled jobs.
  */
 export async function onAppInstall (_: AppInstall, context: TriggerContext) {
-    await storeInitialSourceUseCounts(context);
+    await context.scheduler.runJob({
+        name: STORE_INITIAL_SOURCE_USE_COUNTS,
+        runAt: new Date(),
+    });
 }

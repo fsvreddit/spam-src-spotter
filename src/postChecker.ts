@@ -3,6 +3,7 @@ import { incrementSourceUseCount } from "./redisHelper.js";
 import { AppSetting } from "./settings.js";
 import { addSeconds, addWeeks } from "date-fns";
 import { domainFromUrlString } from "./utility.js";
+import { RUN_CHECK_ON_POSTS_JOB } from "./constants.js";
 
 /**
  * Runs checks on a 15 second delay to allow for async operations to complete.
@@ -18,7 +19,7 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
 
     console.log(`${postId}: Queueing check on post for 15 seconds.`);
     await context.scheduler.runJob({
-        name: "runCheckOnPost",
+        name: RUN_CHECK_ON_POSTS_JOB,
         data: { postId },
         runAt: addSeconds(new Date(), 15),
     });
