@@ -1,8 +1,8 @@
-import {Post, ScheduledJobEvent, TriggerContext} from "@devvit/public-api";
-import {incrementSourceUseCount} from "./redisHelper.js";
-import {AppSetting} from "./settings.js";
-import {addSeconds, addWeeks} from "date-fns";
-import {domainFromUrlString} from "./utility.js";
+import { JSONObject, Post, ScheduledJobEvent, TriggerContext } from "@devvit/public-api";
+import { incrementSourceUseCount } from "./redisHelper.js";
+import { AppSetting } from "./settings.js";
+import { addSeconds, addWeeks } from "date-fns";
+import { domainFromUrlString } from "./utility.js";
 
 /**
  * Runs checks on a 15 second delay to allow for async operations to complete.
@@ -19,7 +19,7 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
     console.log(`${postId}: Queueing check on post for 15 seconds.`);
     await context.scheduler.runJob({
         name: "runCheckOnPost",
-        data: {postId},
+        data: { postId },
         runAt: addSeconds(new Date(), 15),
     });
 }
@@ -27,7 +27,7 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
 /**
  * Scheduled Job execution handler. Gets the post and passes through to the checking function.
  */
-export async function runCheckOnPost (event: ScheduledJobEvent, context: TriggerContext) {
+export async function runCheckOnPost (event: ScheduledJobEvent<JSONObject | undefined>, context: TriggerContext) {
     if (!event.data) {
         console.log("Scheduler job's data not assigned");
         return;
@@ -43,7 +43,7 @@ export async function runCheckOnPost (event: ScheduledJobEvent, context: Trigger
  */
 export async function checkAndActionPost (post: Post, context: TriggerContext) {
     if (post.removed || post.removedByCategory) {
-        console.log(`${post.id}: Post has been deleted or removed after checks queued. RemovedByCategory: ${post.removedByCategory || "undefined"}`);
+        console.log(`${post.id}: Post has been deleted or removed after checks queued. RemovedByCategory: ${post.removedByCategory ?? "undefined"}`);
         return;
     }
 
@@ -53,7 +53,7 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
     const previousCheckKey = `PreviousPostCheck-${post.id}`;
 
     // Add a Redis key to prevent re-processing. Persist records for one week only to manage growth.
-    await context.redis.set(previousCheckKey, new Date().getTime().toString(), {expiration: addWeeks(new Date(), 1)});
+    await context.redis.set(previousCheckKey, new Date().getTime().toString(), { expiration: addWeeks(new Date(), 1) });
 
     const sourceThreshold = await context.settings.get<number>(AppSetting.SourceThreshold);
 
@@ -74,6 +74,6 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
     if (reportTemplate) {
         reportTemplate = reportTemplate.replace("{{domain}}", domain);
         reportTemplate = reportTemplate.replace("{{usecount}}", currentUseCount.toString());
-        await context.reddit.report(post, {reason: reportTemplate});
+        await context.reddit.report(post, { reason: reportTemplate });
     }
 }
