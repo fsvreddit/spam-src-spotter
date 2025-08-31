@@ -36,6 +36,10 @@ Spam Source Spotter is open source. You can find the source code on Github [here
 
 ## Change History
 
+### v1.1.1
+
+* Update Devvit and dependencies to the latest version. No user facing changes on this release.
+
 ### v1.1
 
 * Fixes a bug that can result in usage count not decrementing when a post is deleted
