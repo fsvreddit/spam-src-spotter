@@ -2,16 +2,24 @@ import { TriggerContext } from "@devvit/public-api";
 import { PostDelete } from "@devvit/protos";
 import { currentSourceUseCount, incrementSourceUseCount, removePostFilterRecord } from "./redisHelper.js";
 import { domainFromUrlString } from "./utility.js";
+import { hasTriggerBeenHandled } from "@fsvreddit/fsv-devvit-helpers";
 
 /**
  * Handles PostDelete events. If the user deleted their own post, decreases the domain's use count
  * (if previously was checked), and removes record of post being filtered if post was still in modqueue.
  */
 export async function onPostDelete (event: PostDelete, context: TriggerContext) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     if (event.source as number !== 1) {
         // If post was not deleted by the user, we don't want to decrement.
         return;
     }
+
+    if (await hasTriggerBeenHandled(context.redis, `PostDelete-${event.postId}`)) {
+        console.log(`${event.postId}: We've already handled a delete event for this post. Quitting.`);
+        return;
+    }
+
     console.log(`${event.postId}: User deleted their post.`);
     await decrementUseCountIfPostWasPreviouslyChecked(event.postId, context);
     await removePostFilterRecord(event.postId, context);

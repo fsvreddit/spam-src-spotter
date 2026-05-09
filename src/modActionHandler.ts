@@ -4,6 +4,12 @@ import { isPostFiltered, removePostFilterRecord } from "./redisHelper.js";
 import { queuePostCheck } from "./postChecker.js";
 import { decrementUseCountIfPostWasPreviouslyChecked } from "./postRemovalHandlers.js";
 import { AppSetting } from "./settings.js";
+import { hasTriggerBeenHandled } from "@fsvreddit/fsv-devvit-helpers";
+import { addMinutes } from "date-fns";
+
+async function hasModActionBeenHandled (event: ModAction, context: TriggerContext): Promise<boolean> {
+    return await hasTriggerBeenHandled(context.redis, `ModAction:${event.moderator?.name}:${event.action}:${event.targetPost?.id}:${event.actionedAt?.getTime()}`, { expiration: addMinutes(new Date(), 10) });
+}
 
 /**
  * Handles ModAction events and runs checks which will only run once per post.
@@ -14,6 +20,11 @@ export async function onModAction (event: ModAction, context: TriggerContext) {
     }
 
     if (event.action === "approvelink") {
+        if (await hasModActionBeenHandled(event, context)) {
+            console.log(`${event.targetPost.id}: We've already handled this approve action. Quitting.`);
+            return;
+        }
+
         console.log(`${event.targetPost.id}: Detected an ApproveLink mod action by ${event.moderator.name}.`);
         const wasPostFiltered = await isPostFiltered(event.targetPost.id, context);
         if (wasPostFiltered) {
@@ -30,6 +41,11 @@ export async function onModAction (event: ModAction, context: TriggerContext) {
     }
 
     if ((event.action === "removelink" || event.action === "spamlink") && (event.moderator.name !== "AutoModerator" && event.moderator.name !== "reddit")) {
+        if (await hasModActionBeenHandled(event, context)) {
+            console.log(`${event.targetPost.id}: We've already handled this remove/spam action. Quitting.`);
+            return;
+        }
+
         console.log(`${event.targetPost.id}: Detected a ${event.action} action by ${event.moderator.name}. Checking if use count needs to be decremented.`);
         await decrementUseCountIfPostWasPreviouslyChecked(event.targetPost.id, context);
     }

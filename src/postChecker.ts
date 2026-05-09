@@ -4,16 +4,14 @@ import { AppSetting } from "./settings.js";
 import { addSeconds, addWeeks } from "date-fns";
 import { domainFromUrlString } from "./utility.js";
 import { RUN_CHECK_ON_POSTS_JOB } from "./constants.js";
+import { hasTriggerBeenHandled } from "@fsvreddit/fsv-devvit-helpers";
 
 /**
  * Runs checks on a 15 second delay to allow for async operations to complete.
  */
 export async function queuePostCheck (postId: string, context: TriggerContext) {
-    const previousCheckKey = `PreviousPostCheck-${postId}`;
-
-    const previouslyChecked = await context.redis.get(previousCheckKey);
-    if (previouslyChecked) {
-        console.log(`${postId}: We have previously checked this post. Quitting.`);
+    if (await hasTriggerBeenHandled(context.redis, `PostCheck-${postId}`)) {
+        console.log(`${postId}: We've already queued a check for this post. Quitting.`);
         return;
     }
 

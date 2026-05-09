@@ -41,7 +41,7 @@ export const appSettings: SettingsFormField[] = [
                     if (value) {
                         const regex = /{{((?!domain|usecount)\w+)}}/;
                         const matches = regex.exec(value);
-                        if (matches && matches.length === 2) {
+                        if (matches?.length === 2) {
                             return `Invalid placeholder {{${matches[1]}}}`;
                         }
                     }
