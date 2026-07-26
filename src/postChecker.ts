@@ -1,7 +1,7 @@
 import { JSONObject, Post, ScheduledJobEvent, TriggerContext } from "@devvit/public-api";
 import { incrementSourceUseCount } from "./redisHelper.js";
 import { AppSetting } from "./settings.js";
-import { addSeconds, addWeeks } from "date-fns";
+import { addHours, addSeconds, addWeeks } from "date-fns";
 import { domainFromUrlString } from "./utility.js";
 import { RUN_CHECK_ON_POSTS_JOB } from "./constants.js";
 import { hasTriggerBeenHandled } from "@fsvreddit/fsv-devvit-helpers";
@@ -18,7 +18,7 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
     console.log(`${postId}: Queueing check on post for 15 seconds.`);
     await context.scheduler.runJob({
         name: RUN_CHECK_ON_POSTS_JOB,
-        data: { postId },
+        data: { postId, jobGuid: crypto.randomUUID() },
         runAt: addSeconds(new Date(), 15),
     });
 }
@@ -29,6 +29,12 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
 export async function runCheckOnPost (event: ScheduledJobEvent<JSONObject | undefined>, context: TriggerContext) {
     if (!event.data) {
         console.log("Scheduler job's data not assigned");
+        return;
+    }
+
+    const jobGuid = event.data.jobGuid as string | undefined;
+    if (jobGuid && await hasTriggerBeenHandled(context.redis, `PostCheckJob-${jobGuid}`, { expiration: addHours(new Date(), 1) })) {
+        console.warn(`We've already handled this job with guid ${jobGuid}. Quitting.`);
         return;
     }
 

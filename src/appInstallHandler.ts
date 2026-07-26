@@ -1,9 +1,10 @@
-import { JobContext, TriggerContext } from "@devvit/public-api";
+import { JobContext, TriggerContext, ScheduledJobEvent, JSONObject } from "@devvit/public-api";
 import { AppInstall } from "@devvit/protos";
 import { domainFromUrlString } from "./utility.js";
 import { SOURCE_USE_FREQUENCY } from "./redisHelper.js";
-import { addDays } from "date-fns";
+import { addDays, addHours } from "date-fns";
 import { STORE_INITIAL_SOURCE_USE_COUNTS } from "./constants.js";
+import { hasTriggerBeenHandled } from "@fsvreddit/fsv-devvit-helpers";
 
 interface SourceUseFrequency {
     domain: string;
@@ -14,11 +15,17 @@ interface SourceUseFrequency {
  * Grab the hottest 1000 posts on the subreddit, store their domain usage to reduce load
  * on moderators on new installs.
  */
-export async function storeInitialSourceUseCounts (_: unknown, context: JobContext) {
-    const subreddit = await context.reddit.getCurrentSubreddit();
+export async function storeInitialSourceUseCounts (event: ScheduledJobEvent<JSONObject | undefined>, context: JobContext) {
+    const jobGuid = event.data?.jobGuid as string | undefined;
+    if (jobGuid && await hasTriggerBeenHandled(context.redis, `StoreInitialSourceUseCountsJob-${jobGuid}`, { expiration: addHours(new Date(), 1) })) {
+        console.warn(`We've already handled this job with guid ${jobGuid}. Quitting.`);
+        return;
+    }
+
+    const subredditName = context.subredditName ?? await context.reddit.getCurrentSubredditName();
 
     const subredditPosts = await context.reddit.getHotPosts({
-        subredditName: subreddit.name,
+        subredditName,
         limit: 1000,
         pageSize: 100,
     }).all();
@@ -54,5 +61,6 @@ export async function onAppInstall (_: AppInstall, context: TriggerContext) {
     await context.scheduler.runJob({
         name: STORE_INITIAL_SOURCE_USE_COUNTS,
         runAt: new Date(),
+        data: { jobGuid: crypto.randomUUID() },
     });
 }

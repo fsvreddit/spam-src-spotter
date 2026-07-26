@@ -32,9 +32,13 @@ Checks are not currently run on posts while they are still in the moderation que
 
 ## Source Code
 
-Spam Source Spotter is open source. You can find the source code on Github [here](https://github.com/fsvreddit/spam-src-spotter).
+Spam Source Spotter is open source. [You can find the source code on Github here](https://github.com/fsvreddit/spam-src-spotter).
 
 ## Change History
+
+### v1.1.3
+
+* Further mitigations against duplicate actions
 
 ### v1.1.2
 
