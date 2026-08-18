@@ -1,10 +1,11 @@
-import { JSONObject, Post, ScheduledJobEvent, TriggerContext } from "@devvit/public-api";
+import { Post, ScheduledJobEvent, TriggerContext } from "@devvit/public-api";
 import { incrementSourceUseCount } from "./redisHelper.js";
 import { AppSetting } from "./settings.js";
 import { addHours, addSeconds, addWeeks } from "date-fns";
 import { domainFromUrlString } from "./utility.js";
-import { RUN_CHECK_ON_POSTS_JOB } from "./constants.js";
+import { ScheduledJob } from "./constants.js";
 import { hasTriggerBeenHandled } from "@fsvreddit/fsv-devvit-helpers";
+import { PostCheckJobData } from "./types.js";
 
 /**
  * Runs checks on a 15 second delay to allow for async operations to complete.
@@ -17,8 +18,8 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
 
     console.log(`${postId}: Queueing check on post for 15 seconds.`);
     await context.scheduler.runJob({
-        name: RUN_CHECK_ON_POSTS_JOB,
-        data: { postId, jobGuid: crypto.randomUUID() },
+        name: ScheduledJob.RunCheckOnPosts,
+        data: { postId, jobGuid: crypto.randomUUID() } satisfies PostCheckJobData,
         runAt: addSeconds(new Date(), 15),
     });
 }
@@ -26,21 +27,33 @@ export async function queuePostCheck (postId: string, context: TriggerContext) {
 /**
  * Scheduled Job execution handler. Gets the post and passes through to the checking function.
  */
-export async function runCheckOnPost (event: ScheduledJobEvent<JSONObject | undefined>, context: TriggerContext) {
-    if (!event.data) {
-        console.log("Scheduler job's data not assigned");
+export async function runCheckOnPost (event: ScheduledJobEvent<PostCheckJobData>, context: TriggerContext) {
+    if (await hasTriggerBeenHandled(context.redis, `PostCheckJob-${event.data.jobGuid}`, { expiration: addHours(new Date(), 1) })) {
+        console.warn(`${event.data.postId}: Already handled a job with guid ${event.data.jobGuid}. Quitting.`);
         return;
     }
 
-    const jobGuid = event.data.jobGuid as string | undefined;
-    if (jobGuid && await hasTriggerBeenHandled(context.redis, `PostCheckJob-${jobGuid}`, { expiration: addHours(new Date(), 1) })) {
-        console.warn(`We've already handled this job with guid ${jobGuid}. Quitting.`);
-        return;
-    }
-
-    const postId = event.data.postId as string;
-    const post = await context.reddit.getPostById(postId);
+    const post = await context.reddit.getPostById(event.data.postId);
     await checkAndActionPost(post, context);
+}
+
+async function getRecentDistinctUsersForSource (domain: string, context: TriggerContext): Promise<number> {
+    const cacheKey = `RecentDistinctUsers-${domain}`;
+    const cachedCountValue = await context.redis.get(cacheKey);
+    if (cachedCountValue) {
+        return parseInt(cachedCountValue, 10);
+    }
+
+    const recentPosts = await context.reddit.searchPosts({
+        query: `site:${domain}`,
+        sort: "new",
+        timeframe: "month",
+        pageSize: 1000,
+    }).all();
+
+    const distinctUserCount = new Set(recentPosts.map(post => post.authorId).filter(authorId => authorId !== undefined)).size;
+    await context.redis.set(cacheKey, distinctUserCount.toString(), { expiration: addHours(new Date(), 1) });
+    return distinctUserCount;
 }
 
 /**
@@ -60,7 +73,10 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
     // Add a Redis key to prevent re-processing. Persist records for one week only to manage growth.
     await context.redis.set(previousCheckKey, new Date().getTime().toString(), { expiration: addWeeks(new Date(), 1) });
 
-    const sourceThreshold = await context.settings.get<number>(AppSetting.SourceThreshold);
+    const settings = await context.settings.getAll();
+
+    const sourceThreshold = settings[AppSetting.SourceThreshold] as number | undefined;
+    const userCountThreshold = settings[AppSetting.UserCountThreshold] as number | undefined;
 
     if (!sourceThreshold) {
         console.log("Config: Threshold has not been set!");
@@ -75,7 +91,16 @@ export async function checkAndActionPost (post: Post, context: TriggerContext) {
         return;
     }
 
-    let reportTemplate = await context.settings.get<string>(AppSetting.ReportTemplate);
+    if (userCountThreshold) {
+        const recentDistinctUsers = await getRecentDistinctUsersForSource(domain, context);
+        console.log(`${post.id}: We have seen ${domain} from ${recentDistinctUsers} distinct user(s) in the last month. Threshold is ${userCountThreshold}.`);
+
+        if (recentDistinctUsers > userCountThreshold) {
+            return;
+        }
+    }
+
+    let reportTemplate = settings[AppSetting.ReportTemplate] as string | undefined;
     if (reportTemplate) {
         reportTemplate = reportTemplate.replace("{{domain}}", domain);
         reportTemplate = reportTemplate.replace("{{usecount}}", currentUseCount.toString());

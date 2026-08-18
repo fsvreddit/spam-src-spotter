@@ -1,0 +1,13 @@
+{
+    "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+    "name": "spam-src-spotter",
+    "blocks": {
+        "entry": "src/main.ts",
+        "triggers": [
+            "onAppInstall",
+            "onPostCreate",
+            "onModAction",
+            "onPostDelete"
+        ]
+    }
+}

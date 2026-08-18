@@ -2,13 +2,17 @@ A moderation bot to report posts that are from domains that are not commonly use
 
 ![Example report](https://raw.githubusercontent.com/fsvreddit/spam-src-spotter/main/doc_images/screenshot.png)
 
-This app allows you to set three options.
+This app allows you to set four options.
 
 ### Act on sources that have been seen this many times or less
 
 E.g. if the threshold is zero, no posts will be reported. Some subs might find it useful to run with this setting for a week or two after install to help build up a store of domains that the sub sees (although the app does attempt to build a list on install - see the Operation Notes section).
 
 If the threshold is 2, the first and second post that uses that domain will be reported, but no further ones.
+
+### Act on sources that have been recently seen from this many users or less
+
+E.g. if the threshold is 10, and the source has been seen recently shared by 50 distinct users, no report will be made. However if it had only ever been shared by the OP, it would be reported.
 
 ### Check posts after approving out of the modqueue
 
@@ -30,11 +34,17 @@ If a post has been removed by a moderator or deleted by its author, it is not ta
 
 Checks are not currently run on posts while they are still in the moderation queue because it is not possible to report a queued post. This means that you may find you approve a post and then immediately get a report from the app unless you turn off that option.
 
+You can also configure the app to ignore sources that have been widely posted by other users across Reddit as a whole, avoiding false positives for domains that may not be shared often on *your* subreddit but might have been recently seen in many other subs (e.g. a British news source being shared in a US-focussed subreddit).
+
 ## Source Code
 
-Spam Source Spotter is open source. [You can find the source code on Github here](https://github.com/fsvreddit/spam-src-spotter).
+Spam Source Spotter is open source. [You can find the source code on GitHub here](https://github.com/fsvreddit/spam-src-spotter).
 
 ## Change History
+
+### v1.2.0
+
+* You can now configure the app to only act on sources that have been seen on very few or no other users recently across Reddit as a whole. This permits sources that are clearly legitimate but not frequently seen on *your* subreddit to be ignored.
 
 ### v1.1.3
 

@@ -1,10 +1,11 @@
-import { JobContext, TriggerContext, ScheduledJobEvent, JSONObject } from "@devvit/public-api";
+import { JobContext, TriggerContext, ScheduledJobEvent } from "@devvit/public-api";
 import { AppInstall } from "@devvit/protos";
 import { domainFromUrlString } from "./utility.js";
 import { SOURCE_USE_FREQUENCY } from "./redisHelper.js";
 import { addDays, addHours } from "date-fns";
-import { STORE_INITIAL_SOURCE_USE_COUNTS } from "./constants.js";
+import { ScheduledJob } from "./constants.js";
 import { hasTriggerBeenHandled } from "@fsvreddit/fsv-devvit-helpers";
+import { InstallJobData } from "./types.js";
 
 interface SourceUseFrequency {
     domain: string;
@@ -15,10 +16,9 @@ interface SourceUseFrequency {
  * Grab the hottest 1000 posts on the subreddit, store their domain usage to reduce load
  * on moderators on new installs.
  */
-export async function storeInitialSourceUseCounts (event: ScheduledJobEvent<JSONObject | undefined>, context: JobContext) {
-    const jobGuid = event.data?.jobGuid as string | undefined;
-    if (jobGuid && await hasTriggerBeenHandled(context.redis, `StoreInitialSourceUseCountsJob-${jobGuid}`, { expiration: addHours(new Date(), 1) })) {
-        console.warn(`We've already handled this job with guid ${jobGuid}. Quitting.`);
+export async function storeInitialSourceUseCounts (event: ScheduledJobEvent<InstallJobData>, context: JobContext) {
+    if (await hasTriggerBeenHandled(context.redis, `StoreInitialSourceUseCountsJob-${event.data.jobGuid}`, { expiration: addHours(new Date(), 1) })) {
+        console.warn(`We've already handled this job with guid ${event.data.jobGuid}. Quitting.`);
         return;
     }
 
@@ -59,8 +59,8 @@ export async function storeInitialSourceUseCounts (event: ScheduledJobEvent<JSON
  */
 export async function onAppInstall (_: AppInstall, context: TriggerContext) {
     await context.scheduler.runJob({
-        name: STORE_INITIAL_SOURCE_USE_COUNTS,
+        name: ScheduledJob.StoreInitialSourceUseCounts,
         runAt: new Date(),
-        data: { jobGuid: crypto.randomUUID() },
+        data: { jobGuid: crypto.randomUUID() } satisfies InstallJobData,
     });
 }

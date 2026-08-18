@@ -5,7 +5,7 @@ import { onPostCreate } from "./postCreateHandler.js";
 import { onModAction } from "./modActionHandler.js";
 import { onPostDelete } from "./postRemovalHandlers.js";
 import { runCheckOnPost } from "./postChecker.js";
-import { RUN_CHECK_ON_POSTS_JOB, STORE_INITIAL_SOURCE_USE_COUNTS } from "./constants.js";
+import { ScheduledJob } from "./constants.js";
 
 Devvit.addSettings(appSettings);
 
@@ -30,12 +30,12 @@ Devvit.addTrigger({
 });
 
 Devvit.addSchedulerJob({
-    name: RUN_CHECK_ON_POSTS_JOB,
+    name: ScheduledJob.RunCheckOnPosts,
     onRun: runCheckOnPost,
 });
 
 Devvit.addSchedulerJob({
-    name: STORE_INITIAL_SOURCE_USE_COUNTS,
+    name: ScheduledJob.StoreInitialSourceUseCounts,
     onRun: storeInitialSourceUseCounts,
 });
 
