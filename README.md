@@ -42,6 +42,10 @@ Spam Source Spotter is open source. [You can find the source code on GitHub here
 
 ## Change History
 
+### v1.2.1
+
+Update app to use Devvit Web framework, no user facing changes
+
 ### v1.2.0
 
 * You can now configure the app to only act on sources that have been seen on very few or no other users recently across Reddit as a whole. This permits sources that are clearly legitimate but not frequently seen on *your* subreddit to be ignored.

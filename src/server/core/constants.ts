@@ -1,4 +1,4 @@
-export enum ScheduledJob {
+export enum SchedulerJob {
     RunCheckOnPosts = "runCheckOnPost",
     StoreInitialSourceUseCounts = "storeInitialSourceUseCounts",
 }

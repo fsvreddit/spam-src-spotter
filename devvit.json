@@ -1,13 +1,75 @@
 {
     "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
     "name": "spam-src-spotter",
-    "blocks": {
-        "entry": "src/main.ts",
-        "triggers": [
-            "onAppInstall",
-            "onPostCreate",
-            "onModAction",
-            "onPostDelete"
-        ]
+    "permissions": {
+        "reddit": true
+    },
+    "scripts": {
+        "build": "vite build",
+        "dev": "vite build --watch"
+    },
+    "server": {
+        "dir": "dist/server",
+        "entry": "index.cjs"
+    },
+    "settings": {
+        "subreddit": {
+            "group_DetectionOptions": {
+                "type": "group",
+                "label": "Detection Options",
+                "fields": {
+                    "sourceThreshold": {
+                        "type": "number",
+                        "label": "Act on sources that have been seen this many times or less",
+                        "helpText": "If 0, no sources will be detected as potentially problematic. It can be useful to run with this value on busy subreddits to build up datasets.",
+                        "defaultValue": 2,
+                        "validationEndpoint": "/internal/validators/number-greater-than-0"
+                    },
+                    "userCountThreshold": {
+                        "type": "number",
+                        "label": "Act on sources that have been recently seen from this many users or less",
+                        "helpText": "If 0, sources will be detected regardless of how many users have posted them. I recommend setting the value to a low but non-zero value to ignore false alarms from sources that are shared by many users.",
+                        "defaultValue": 10,
+                        "validationEndpoint": "/internal/validators/number-greater-than-0"
+                    },
+                    "checkAfterApproval": {
+                        "type": "boolean",
+                        "label": "Check posts after approving out of the modqueue",
+                        "helpText": "If disabled, posts will only be checked if they were not modqueued.",
+                        "defaultValue": true
+                    }
+                }
+            },
+            "group_ActionOptions": {
+                "type": "group",
+                "label": "Action Options",
+                "fields": {
+                    "reportTemplate": {
+                        "type": "string",
+                        "label": "Template for report text",
+                        "helpText": "Placeholders supported: {{domain}}, {{usecount}}",
+                        "defaultValue": "Potential problem domain. {{domain}} has been seen {{usecount}} time(s).",
+                        "validationEndpoint": "/internal/validators/report-template"
+                    }
+                }
+            }
+        }
+    },
+    "triggers": {
+        "onAppInstall": "/internal/triggers/app-install",
+        "onAppUpgrade": "/internal/triggers/app-upgrade",
+        "onModAction": "/internal/triggers/mod-action",
+        "onPostCreate": "/internal/triggers/post-create",
+        "onPostDelete": "/internal/triggers/post-delete"
+    },
+    "scheduler": {
+        "tasks": {
+            "runCheckOnPost": {
+                "endpoint": "/internal/tasks/run-check-on-post"
+            },
+            "storeInitialSourceUseCounts": {
+                "endpoint": "/internal/tasks/store-initial-source-use-counts"
+            }
+        }
     }
 }
