@@ -42,7 +42,7 @@ Spam Source Spotter is open source. [You can find the source code on GitHub here
 
 ## Change History
 
-### v1.2.1
+### v1.3.0
 
 Update app to use Devvit Web framework, no user facing changes
 
